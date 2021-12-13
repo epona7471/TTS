@@ -8,6 +8,9 @@ from .abbreviations import abbreviations_en, abbreviations_fr
 from .number_norm import normalize_numbers
 from .time import expand_time_english
 
+from .korean import tokenize as ko_tokenize
+
+
 # Regular expression matching whitespace:
 _whitespace_re = re.compile(r"\s+")
 
@@ -85,6 +88,13 @@ def basic_turkish_cleaners(text):
     text = lowercase(text)
     text = collapse_whitespace(text)
     return text
+
+#==============Korean Module==================
+def korean_cleaners(text):
+    '''Pipeline for Korean text, including number and abbreviation expansion.'''
+    text = ko_tokenize(text) # '존경하는' --> ['ᄌ', 'ᅩ', 'ᆫ', 'ᄀ', 'ᅧ', 'ᆼ', 'ᄒ', 'ᅡ', 'ᄂ', 'ᅳ', 'ᆫ', '~']
+    return text
+#==============Korean Module==================
 
 
 def english_cleaners(text):
