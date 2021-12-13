@@ -11,6 +11,9 @@ from TTS.tts.utils.text.chinese_mandarin.phonemizer import chinese_text_to_phone
 from TTS.tts.utils.text.japanese.phonemizer import japanese_text_to_phonemes
 from TTS.tts.utils.text.symbols import _bos, _eos, _punctuations, make_symbols, phonemes, symbols
 
+from TTS.tts.utils.text.cleaners import korean_cleaners
+from TTS.tts.utils.text.korean import jamo_to_korean, ALL_SYMBOLS, PAD, EOS
+
 # pylint: disable=unnecessary-comprehension
 # Mappings from symbol to numeric ID and vice versa:
 _symbol_to_id = {s: i for i, s in enumerate(symbols)}
@@ -189,8 +192,13 @@ def text_to_sequence(
     """
     # pylint: disable=global-statement
     global _symbol_to_id, _symbols
-
-    if custom_symbols is not None:
+    
+    #=================== Korean Module =========================== 
+    if 'korean_cleaners' in cleaner_names:
+        _symbols = ALL_SYMBOLS
+    #=================== Korean Module =========================== 
+    
+    elif custom_symbols is not None:
         _symbols = custom_symbols
     elif tp:
         _symbols, _ = make_symbols(**tp)
@@ -199,14 +207,26 @@ def text_to_sequence(
     sequence = []
 
     # Check for curly braces and treat their contents as ARPAbet:
-    while text:
-        m = _CURLY_RE.match(text)
-        if not m:
-            sequence += _symbols_to_sequence(_clean_text(text, cleaner_names))
-            break
-        sequence += _symbols_to_sequence(_clean_text(m.group(1), cleaner_names))
-        sequence += _arpabet_to_sequence(m.group(2))
-        text = m.group(3)
+    # =================== Korean Module ===========================
+    if 'korean_cleaners' in cleaner_names:
+        while text:
+            m = _CURLY_RE.match(text)
+            if not m:
+                sequence += _symbols_to_sequence(korean_cleaners(text))
+                break
+            sequence += _symbols_to_sequence(korean_cleaners(m.group(1)))
+            sequence += _arpabet_to_sequence(m.group(2))
+            text = m.group(3)
+    # =================== Korean Module ===========================
+    else:
+        while text:
+            m = _CURLY_RE.match(text)
+            if not m:
+                sequence += _symbols_to_sequence(_clean_text(text, cleaner_names))
+                break
+            sequence += _symbols_to_sequence(_clean_text(m.group(1), cleaner_names))
+            sequence += _arpabet_to_sequence(m.group(2))
+            text = m.group(3)
 
     if add_blank:
         sequence = intersperse(sequence, len(_symbols))  # add a blank token (new), whose id number is len(_symbols)
