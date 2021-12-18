@@ -205,13 +205,14 @@ def text_to_sequence(
     _symbol_to_id = {s: i for i, s in enumerate(_symbols)}
 
     sequence = []
-
+    print(_symbol_to_id) ## temporary update
     # Check for curly braces and treat their contents as ARPAbet:
     # =================== Korean Module ===========================
     if 'korean_cleaners' in cleaner_names:
         while text:
             m = _CURLY_RE.match(text)
             if not m:
+                print(korean_cleaners(text)) ## temporary update
                 sequence += _symbols_to_sequence(korean_cleaners(text))
                 break
             sequence += _symbols_to_sequence(korean_cleaners(m.group(1)))
